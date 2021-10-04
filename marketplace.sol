@@ -20,7 +20,7 @@ contract Marketplace {
     IERC721 nftAddress;
 
     mapping (uint256 => Offer) public offers;
-    uint256 numOffers = 0;
+    uint256 public numOffers = 0;
 
     constructor (address nftAddr) {
         nftAddress = IERC721(nftAddr);
