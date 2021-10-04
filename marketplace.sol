@@ -1,9 +1,8 @@
-
 pragma solidity ^0.8.9;
 
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
-contract SellMarketplace {
+contract Marketplace {
 
     struct Offer {
         uint256 tokenId;
