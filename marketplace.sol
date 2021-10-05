@@ -114,4 +114,28 @@ contract Marketplace {
         return _ERC721_RECEIVED;
     }
 
+    function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
+        uint256[] memory result = new uint256[](numOffers);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].seller == payable(0)) {
+                result[k] = i;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
+    function getSellOffers(uint256 tokenId) public view returns(uint256[] memory) {
+        uint256[] memory result = new uint256[](numOffers);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == payable(0)) {
+                result[k] = i;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
 }
