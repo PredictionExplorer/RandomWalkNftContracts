@@ -46,6 +46,15 @@ contract RandomWalksToken is ERC721Enumerable, Ownable {
         return saleTime - block.timestamp;
     }
 
+    function setName(uint256 tokenId, string memory name) public {
+        address owner = ERC721.ownerOf(tokenId);
+        require(
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "ERC721: approve caller is not owner nor approved for all"
+        );
+        names[tokenId] = name;
+    }
+
     function mint() public payable {
         uint256 newPrice = getMintPrice();
         require(
