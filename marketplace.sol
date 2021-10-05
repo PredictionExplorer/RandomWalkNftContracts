@@ -115,7 +115,13 @@ contract Marketplace {
     }
 
     function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
-        uint256[] memory result = new uint256[](numOffers);
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].seller == payable(0)) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
             if (offers[i].tokenId == tokenId && offers[i].active && offers[i].seller == payable(0)) {
@@ -127,7 +133,13 @@ contract Marketplace {
     }
 
     function getSellOffers(uint256 tokenId) public view returns(uint256[] memory) {
-        uint256[] memory result = new uint256[](numOffers);
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == payable(0)) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
             if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == payable(0)) {
