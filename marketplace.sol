@@ -25,7 +25,6 @@ contract Marketplace {
     constructor (address nftAddr) {
         nftAddress = IERC721(nftAddr);
     }
-
     function makeBuyOffer(uint256 tokenId) payable public {
         offers[numOffers] = Offer({
             tokenId: tokenId,
@@ -67,7 +66,8 @@ contract Marketplace {
             offers[offerId].buyer,
             offers[offerId].tokenId
         );
-        offers[offerId].seller.transfer(offers[offerId].price);
+        (bool success, ) = offers[offerId].seller.call{value: offers[offerId].price}("");
+        require(success, "Transfer failed.");
         emit ItemBought(offerId);
     }
 
@@ -83,7 +83,8 @@ contract Marketplace {
             offers[offerId].buyer,
             offers[offerId].tokenId
         );
-        offers[offerId].seller.transfer(offers[offerId].price);
+        (bool success, ) = offers[offerId].seller.call{value: offers[offerId].price}("");
+        require(success, "Transfer failed.");
         emit ItemBought(offerId);
     }
 
@@ -93,7 +94,8 @@ contract Marketplace {
         require(offers[offerId].seller == address(0), "Must be a buy offer");
 
         offers[offerId].active = false;
-        offers[offerId].buyer.transfer(offers[offerId].price);
+        (bool success, ) = offers[offerId].buyer.call{value: offers[offerId].price}("");
+        require(success, "Transfer failed.");
     }
 
     function cancelSellOffer(uint256 offerId) public {
