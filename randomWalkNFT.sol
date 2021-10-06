@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 pragma solidity ^0.8.9;
 
-contract RandomWalksToken is ERC721Enumerable, Ownable {
+contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
     uint256 public saleTime = 1633647600; // 7PM EDT on October 7th, 2021
     uint256 public price = 10**15; // Price starts at .001 eth
