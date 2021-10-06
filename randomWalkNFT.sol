@@ -69,6 +69,10 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         return withdrawalTime - block.timestamp;
     }
 
+    function withdrawalAmount() public view returns (uint256) {
+        return address(this).balance / 2;
+    }
+
     /**
      * If there was no mint for withdrawalWaitSeconds, then the last minter can withdraw
      * half of the balance in the smart contract.
@@ -78,7 +82,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         require(timeUntilWithdrawal() == 0);
         lastMintTime = block.timestamp;
         // Transfer half of the balance to the last minter.
-        (bool success, ) = lastMinter.call{value: address(this).balance / 2}("");
+        (bool success, ) = lastMinter.call{value: withdrawalAmount()}("");
         require(success, "Transfer failed.");
     }
 
