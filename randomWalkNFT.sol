@@ -11,11 +11,19 @@ contract RandomWalksToken is ERC721Enumerable, Ownable {
     uint256 public saleTime = 1633647600; // 7PM EDT on October 7th, 2021
     uint256 public price = 10**15; // Price starts at .001 eth
 
+    // How long to wait until the last minter can withdraw
+    uint256 public withdrawalWaitSeconds = 3600 * 24 * 30;
+
     // Seeds
     mapping(uint256 => bytes32) public seeds;
 
+    mapping(uint256 => string) public tokenNames;
+
     // Entropy
     bytes32 public entropy;
+
+    address payable public lastMinter = payable(0);
+    uint256 public lastMintTime = saleTime;
 
     string private _baseTokenURI;
 
@@ -33,6 +41,15 @@ contract RandomWalksToken is ERC721Enumerable, Ownable {
         _baseTokenURI = baseURI;
     }
 
+    function setName(uint256 tokenId, string memory name) public {
+        address owner = ERC721.ownerOf(tokenId);
+        require(
+            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
+            "setName caller is not owner nor approved for all"
+        );
+        tokenNames[tokenId] = name;
+    }
+
     function _baseURI() internal view virtual override returns (string memory) {
         return _baseTokenURI;
     }
@@ -46,13 +63,23 @@ contract RandomWalksToken is ERC721Enumerable, Ownable {
         return saleTime - block.timestamp;
     }
 
-    function setName(uint256 tokenId, string memory name) public {
-        address owner = ERC721.ownerOf(tokenId);
-        require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "ERC721: approve caller is not owner nor approved for all"
-        );
-        names[tokenId] = name;
+    function timeUntilWithdrawal() public view returns (uint256) {
+        uint256 withdrawalTime = lastMintTime + withdrawalWaitSeconds;
+        if (withdrawalTime < block.timestamp) return 0;
+        return withdrawalTime - block.timestamp;
+    }
+
+    /**
+     * If there was no mint for withdrawalWaitSeconds, then the last minter can withdraw
+     * half of the balance in the smart contract.
+     */
+    function withdraw() public {
+        require(msg.sender == lastMinter);
+        require(timeUntilWithdrawal() == 0);
+        lastMintTime = block.timestamp;
+        // Transfer half of the balance to the last minter.
+        (bool success, ) = lastMinter.call{value: address(this).balance / 2}("");
+        require(success, "Transfer failed.");
     }
 
     function mint() public payable {
@@ -74,6 +101,9 @@ contract RandomWalksToken is ERC721Enumerable, Ownable {
         uint256 tokenId = totalSupply();
         seeds[tokenId] = entropy;
         _safeMint(msg.sender, tokenId);
+
+        lastMinter = payable(msg.sender);
+        lastMintTime = block.timestamp;
     }
 
     // Returns a list of token Ids owned by _owner.
