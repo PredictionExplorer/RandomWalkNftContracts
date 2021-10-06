@@ -111,7 +111,7 @@ contract Marketplace {
         );
     }
 
-    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public returns(bytes4) {
+    function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public pure returns(bytes4) {
         bytes4 _ERC721_RECEIVED = 0x150b7a02;
         return _ERC721_RECEIVED;
     }
