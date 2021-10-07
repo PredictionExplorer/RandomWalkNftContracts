@@ -88,7 +88,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
      * half of the balance in the smart contract.
      */
     function withdraw() public {
-        require(msg.sender == lastMinter);
+        require(_msgSender() == lastMinter);
         require(timeUntilWithdrawal() == 0);
         lastMinter = payable(0);
         // Transfer half of the balance to the last minter.
@@ -111,13 +111,19 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
             entropy,
             block.timestamp,
             blockhash(block.number),
-            msg.sender));
+            _msgSender));
         uint256 tokenId = totalSupply();
         seeds[tokenId] = entropy;
-        _safeMint(msg.sender, tokenId);
+        _safeMint(_msgSender, tokenId);
 
-        lastMinter = payable(msg.sender);
+        lastMinter = payable(_msgSender);
         lastMintTime = block.timestamp;
+
+        if (msg.value > newPrice) {
+            // Return the extra money to the minter.
+            (bool success, ) = _msgSender.call{value: msg.value - newPrice}("");
+            require(success, "Transfer failed.");
+        }
     }
 
     // Returns a list of token Ids owned by _owner.
