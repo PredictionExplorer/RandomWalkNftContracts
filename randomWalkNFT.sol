@@ -53,10 +53,9 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     }
 
     function setTokenName(uint256 tokenId, string memory name) public {
-        address owner = ERC721.ownerOf(tokenId);
         require(
-            _msgSender() == owner || isApprovedForAll(owner, _msgSender()),
-            "setTokenName caller is not owner nor approved for all"
+            _isApprovedOrOwner(_msgSender(), tokenId),
+            "setTokenName caller is not owner nor approved"
         );
         tokenNames[tokenId] = name;
     }
