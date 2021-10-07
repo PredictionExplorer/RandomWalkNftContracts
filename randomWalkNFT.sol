@@ -41,6 +41,16 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         _baseTokenURI = baseURI;
     }
 
+    // IMPORTANT: Remove this for the final deployment
+    function setSaleTime(uint256 newSaleTime) public {
+        saleTime = newSaleTime;
+    }
+
+    // IMPORTANT: Remove this for the final deployment
+    function setWithdrawalWait(uint256 newTime) public {
+        withdrawalWaitSeconds = newTime;
+    }
+
     function setTokenName(uint256 tokenId, string memory name) public {
         address owner = ERC721.ownerOf(tokenId);
         require(
@@ -80,7 +90,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     function withdraw() public {
         require(msg.sender == lastMinter);
         require(timeUntilWithdrawal() == 0);
-        lastMintTime = block.timestamp;
+        lastMinter = payable(0);
         // Transfer half of the balance to the last minter.
         (bool success, ) = lastMinter.call{value: withdrawalAmount()}("");
         require(success, "Transfer failed.");
@@ -150,5 +160,4 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         }
         return result;
     }
-
 }
