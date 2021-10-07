@@ -111,17 +111,17 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
             entropy,
             block.timestamp,
             blockhash(block.number),
-            _msgSender));
+            _msgSender()));
         uint256 tokenId = totalSupply();
         seeds[tokenId] = entropy;
-        _safeMint(_msgSender, tokenId);
+        _safeMint(_msgSender(), tokenId);
 
-        lastMinter = payable(_msgSender);
+        lastMinter = payable(_msgSender());
         lastMintTime = block.timestamp;
 
         if (msg.value > newPrice) {
             // Return the extra money to the minter.
-            (bool success, ) = _msgSender.call{value: msg.value - newPrice}("");
+            (bool success, ) = _msgSender().call{value: msg.value - newPrice}("");
             require(success, "Transfer failed.");
         }
     }
