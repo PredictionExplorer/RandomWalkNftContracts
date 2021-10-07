@@ -8,7 +8,7 @@ pragma solidity ^0.8.9;
 
 contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
-    uint256 public saleTime = 1633647600; // 7PM EDT on October 7th, 2021
+    uint256 public saleTime;
     uint256 public price = 10**15; // Price starts at .001 eth
 
     // How long to wait until the last minter can withdraw
@@ -30,7 +30,8 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
 
-    constructor(string memory baseURI) ERC721("RandomWalkNFT", "RWLK") {
+    constructor(string memory baseURI, uint256 _saleTime) ERC721("RandomWalkNFT", "RWLK") {
+        saleTime = _saleTime;
         setBaseURI(baseURI);
         entropy = keccak256(abi.encode(
             "A two-dimensional random walk will return to the point where it started, but a three-dimensional one may not.",
