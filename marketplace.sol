@@ -9,8 +9,8 @@ contract Marketplace {
     struct Offer {
         uint256 tokenId;
         uint256 price;
-        address payable seller;
-        address payable buyer;
+        address seller;
+        address buyer;
         bool active;
     }
 
@@ -29,8 +29,8 @@ contract Marketplace {
         offers[numOffers] = Offer({
             tokenId: tokenId,
             price: msg.value,
-            seller: payable(0),
-            buyer: payable(msg.sender),
+            seller: address(0),
+            buyer: msg.sender,
             active: true
         });
         uint256 offerId = numOffers;
@@ -42,8 +42,8 @@ contract Marketplace {
         offers[numOffers] = Offer({
             tokenId: tokenId,
             price: price,
-            seller: payable(msg.sender),
-            buyer: payable(0),
+            seller: msg.sender,
+            buyer: address(0),
             active: true
         });
         uint256 offerId = numOffers;
@@ -60,7 +60,7 @@ contract Marketplace {
     function acceptBuyOffer(uint256 offerId) public {
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].seller == address(0), "Must be a buy offer");
-        offers[offerId].seller = payable(msg.sender);
+        offers[offerId].seller = msg.sender;
         nftAddress.safeTransferFrom(
             offers[offerId].seller,
             offers[offerId].buyer,
@@ -76,7 +76,7 @@ contract Marketplace {
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].buyer == address(0), "Must be a sell offer");
 
-        offers[offerId].buyer = payable(msg.sender);
+        offers[offerId].buyer = address(msg.sender);
 
         nftAddress.safeTransferFrom(
             address(this),
@@ -163,14 +163,14 @@ contract Marketplace {
     function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == payable(0)) {
+            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == payable(0)) {
+            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
                 result[k] = i;
                 k += 1;
             }
@@ -181,14 +181,14 @@ contract Marketplace {
     function getSellOffers(uint256 tokenId) public view returns(uint256[] memory) {
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == payable(0)) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == address(0)) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == payable(0)) {
+            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == address(0)) {
                 result[k] = i;
                 k += 1;
             }
