@@ -116,17 +116,61 @@ contract Marketplace {
         return _ERC721_RECEIVED;
     }
 
-    function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
+    /**
+     * Returns a list of tokens that are for sale by a certain address.
+     * Each value should appear only once.
+     */
+    function getSellOffersBy(address seller) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].seller == payable(0)) {
+            if (offers[i].active && offers[i].seller == seller) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].seller == payable(0)) {
+            if (offers[i].active && offers[i].seller == seller) {
+                result[k] = offers[i].tokenId;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns a list of tokens that a certain address is offering to buy.
+     * (Theoretically, there could be duplicates here.)
+     */
+    function getBuyOffersBy(address buyer) public view returns(uint256[] memory){
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].buyer == buyer) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].buyer == buyer) {
+                result[k] = offers[i].tokenId;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
+    function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == payable(0)) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == payable(0)) {
                 result[k] = i;
                 k += 1;
             }
