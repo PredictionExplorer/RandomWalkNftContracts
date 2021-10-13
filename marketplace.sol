@@ -120,7 +120,7 @@ contract Marketplace {
      * Returns a list of tokens that are for sale by a certain address.
      * Each value should appear only once.
      */
-    function getSellOffersBy(address seller) public view returns(uint256[] memory){
+    function getSellTokenBy(address seller) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
             if (offers[i].active && offers[i].seller == seller) {
@@ -142,7 +142,7 @@ contract Marketplace {
      * Returns a list of tokens that a certain address is offering to buy.
      * (Theoretically, there could be duplicates here.)
      */
-    function getBuyOffersBy(address buyer) public view returns(uint256[] memory){
+    function getBuyTokensBy(address buyer) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
             if (offers[i].active && offers[i].buyer == buyer) {
@@ -154,6 +154,48 @@ contract Marketplace {
         for (uint256 i = 0; i < numOffers; i++) {
             if (offers[i].active && offers[i].buyer == buyer) {
                 result[k] = offers[i].tokenId;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns a list of offersIds that are on sale by a certain address.
+     */
+    function getSellOffersBy(address seller) public view returns(uint256[] memory){
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].seller == seller) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].seller == seller) {
+                result[k] = i;
+                k += 1;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns a list of offersIds where a certain address is trying to buy.
+     */
+    function getBuyOffersBy(address buyer) public view returns(uint256[] memory){
+        uint256 size = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].buyer == buyer) {
+                size += 1;
+            }
+        }
+        uint256[] memory result = new uint256[](size);
+        uint256 k = 0;
+        for (uint256 i = 0; i < numOffers; i++) {
+            if (offers[i].active && offers[i].buyer == buyer) {
+                result[k] = i;
                 k += 1;
             }
         }
