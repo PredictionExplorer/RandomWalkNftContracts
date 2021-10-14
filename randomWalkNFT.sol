@@ -19,6 +19,10 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
     mapping(uint256 => string) public tokenNames;
 
+    uint256 public numWithdrawals = 0;
+    mapping(uint256 => uint256) public withdrawalNums;
+    mapping(uint256 => uint256) public withdrawalAmounts;
+
     // Entropy
     bytes32 public entropy;
 
@@ -26,6 +30,8 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     uint256 public lastMintTime = saleTime;
 
     string private _baseTokenURI;
+
+    event WithdrawalEvent(uint256 tokenId);
 
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
@@ -91,9 +97,13 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         require(_msgSender() == lastMinter);
         require(timeUntilWithdrawal() == 0);
         lastMinter = address(0);
+        withdrawalNums[totalSupply() - 1] = numWithdrawals;
+        numWithdrawals += 1;
+        withdrawalAmounts[totalSupply() - 1] = withdrawalAmount();
         // Transfer half of the balance to the last minter.
         (bool success, ) = _msgSender().call{value: withdrawalAmount()}("");
         require(success, "Transfer failed.");
+        emit WithdrawalEvent(totalSupply() - 1);
     }
 
     function mint() public payable {
