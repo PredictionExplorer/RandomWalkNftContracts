@@ -16,6 +16,7 @@ contract Marketplace {
 
     event NewOffer(uint256 offerId);
     event ItemBought(uint256 offerId);
+    event OfferCanceled(uint256 offerId);
 
     IERC721 nftAddress;
 
@@ -60,7 +61,10 @@ contract Marketplace {
     function acceptBuyOffer(uint256 offerId) public {
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].seller == address(0), "Must be a buy offer");
+
         offers[offerId].seller = msg.sender;
+        offers[offerId].active = false;
+
         nftAddress.safeTransferFrom(
             offers[offerId].seller,
             offers[offerId].buyer,
@@ -76,7 +80,8 @@ contract Marketplace {
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].buyer == address(0), "Must be a sell offer");
 
-        offers[offerId].buyer = address(msg.sender);
+        offers[offerId].buyer = msg.sender;
+        offers[offerId].active = false;
 
         nftAddress.safeTransferFrom(
             address(this),
@@ -96,6 +101,7 @@ contract Marketplace {
         offers[offerId].active = false;
         (bool success, ) = offers[offerId].buyer.call{value: offers[offerId].price}("");
         require(success, "Transfer failed.");
+        emit OfferCanceled(offerId);
     }
 
     function cancelSellOffer(uint256 offerId) public {
@@ -109,6 +115,7 @@ contract Marketplace {
             offers[offerId].seller,
             offers[offerId].tokenId
         );
+        emit OfferCanceled(offerId);
     }
 
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public pure returns(bytes4) {
