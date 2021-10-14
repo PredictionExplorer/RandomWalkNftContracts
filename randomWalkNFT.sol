@@ -92,7 +92,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         require(timeUntilWithdrawal() == 0);
         lastMinter = address(0);
         // Transfer half of the balance to the last minter.
-        (bool success, ) = lastMinter.call{value: withdrawalAmount()}("");
+        (bool success, ) = _msgSender().call{value: withdrawalAmount()}("");
         require(success, "Transfer failed.");
     }
 
