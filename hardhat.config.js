@@ -1,3 +1,4 @@
+require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 
@@ -9,4 +10,7 @@ module.exports = {
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
   },
+  etherscan: {
+    apiKey: process.env.API_KEY !== undefined ? [process.env.API_KEY] : [],
+  }
 };

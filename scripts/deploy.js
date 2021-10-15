@@ -7,8 +7,11 @@ async function main() {
 
   const RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
   const hardhatRandomWalkNFT = await RandomWalkNFT.deploy(0, 0);
-
   console.log("hardhatRandomWalkNFT address:", hardhatRandomWalkNFT.address);
+
+  const Marketplace = await ethers.getContractFactory("Marketplace");
+  const hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
+  console.log("hardhatMarketplace address:", hardhatMarketplace.address);
 }
 
 main()
