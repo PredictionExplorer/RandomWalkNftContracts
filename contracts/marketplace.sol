@@ -98,9 +98,9 @@ contract Marketplace {
     }
 
     function cancelBuyOffer(uint256 offerId) public {
-        require(msg.sender == offers[offerId].buyer, "Only the buyer can cancel offer.");
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].seller == address(0), "Must be a buy offer");
+        require(msg.sender == offers[offerId].buyer, "Only the buyer can cancel offer.");
 
         offers[offerId].active = false;
         (bool success, ) = offers[offerId].buyer.call{value: offers[offerId].price}("");
@@ -109,9 +109,9 @@ contract Marketplace {
     }
 
     function cancelSellOffer(uint256 offerId) public {
-        require(offers[offerId].seller == msg.sender, "Only the seller can cancel offer.");
         require(offers[offerId].active, "Offer must be active");
         require(offers[offerId].buyer == address(0), "Must be a sell offer");
+        require(offers[offerId].seller == msg.sender, "Only the seller can cancel offer.");
 
         offers[offerId].active = false;
         nftAddress.safeTransferFrom(

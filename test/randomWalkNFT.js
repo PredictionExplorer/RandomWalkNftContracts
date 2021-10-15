@@ -36,11 +36,24 @@ describe("RandomWalkNFT contract", function () {
   it("Cancel Buy offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
+    let price = ethers.utils.parseEther('2.123');
+    await hardhatMarketplace.connect(addr1).makeBuyOffer(0, {value: price});
+    await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
+    await expect(hardhatMarketplace.connect(addr1).cancelSellOffer(0)).to.be.revertedWith("Must be a sell offer");
+    initial_balance = await ethers.provider.getBalance(addr1.address);
+    await hardhatMarketplace.connect(addr1).cancelBuyOffer(0);
+    expect(valuesClose(initial_balance.add(price), await ethers.provider.getBalance(addr1.address))).to.equal(true);
+  });
+
+  it("Cancel Sell offer should work", async function () {
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.mint({value: mintPrice});
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(owner.address);
     let price = ethers.utils.parseEther('2.123');
     await hardhatMarketplace.makeSellOffer(0, price);
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.not.equal(owner.address);
+    await expect(hardhatMarketplace.cancelBuyOffer(0)).to.be.revertedWith("Must be a buy offer");
     await hardhatMarketplace.cancelSellOffer(0);
     await expect(hardhatMarketplace.connect(addr1).acceptSellOffer(0, {value: price})).to.be.revertedWith("Offer must be active");
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(owner.address);
