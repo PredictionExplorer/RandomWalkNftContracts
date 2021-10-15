@@ -2,7 +2,7 @@ const { expect } = require("chai");
 
 function valuesClose(x, y) {
   r = x.sub(y).abs()
-  comp = ethers.utils.parseEther('0.0001');
+  comp = ethers.utils.parseEther('0.001');
   return r.lt(comp);
 }
 
@@ -33,12 +33,25 @@ describe("RandomWalkNFT contract", function () {
     hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
   });
 
-  it("Sale should work", async function () {
+  it("Buy offer should work", async function () {
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.mint({value: mintPrice});
+    let price = ethers.utils.parseEther('2.123');
+    await hardhatMarketplace.connect(addr1).makeBuyOffer(0, {value: price});
+    await expect(hardhatMarketplace.acceptBuyOffer(0)).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
+    await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
+    initial_balance = await ethers.provider.getBalance(owner.address);
+    await hardhatMarketplace.acceptBuyOffer(0);
+    expect(valuesClose(initial_balance.add(price), await ethers.provider.getBalance(owner.address))).to.equal(true);
+    expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(addr1.address);
+  });
+
+  it("Sale offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
     await expect(hardhatMarketplace.makeSellOffer(0, ethers.utils.parseEther('0.123'))).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');;
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
-    let price = ethers.utils.parseEther('0.123');
+    let price = ethers.utils.parseEther('3.123');
     await hardhatMarketplace.makeSellOffer(0, price);
     initial_balance = await ethers.provider.getBalance(owner.address);
     await expect(hardhatMarketplace.connect(addr1).acceptBuyOffer(0)).to.be.revertedWith("Must be a buy offer");
