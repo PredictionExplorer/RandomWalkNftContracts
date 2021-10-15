@@ -14,9 +14,13 @@ contract Marketplace {
         bool active;
     }
 
-    event NewOffer(uint256 offerId);
-    event ItemBought(uint256 offerId);
-    event OfferCanceled(uint256 offerId);
+    event NewOffer(uint256 indexed offerId,
+        uint256 indexed tokenId,
+        address seller,
+        address buyer,
+        uint256 price);
+    event ItemBought(uint256 indexed offerId);
+    event OfferCanceled(uint256 indexed offerId);
 
     IERC721 nftAddress;
 
@@ -27,27 +31,27 @@ contract Marketplace {
         nftAddress = IERC721(nftAddr);
     }
     function makeBuyOffer(uint256 tokenId) payable public {
-        offers[numOffers] = Offer({
+        uint256 offerId = numOffers;
+        offers[offerId] = Offer({
             tokenId: tokenId,
             price: msg.value,
             seller: address(0),
             buyer: msg.sender,
             active: true
         });
-        uint256 offerId = numOffers;
         numOffers += 1;
-        emit NewOffer(offerId);
+        emit NewOffer(offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
     }
 
     function makeSellOffer(uint256 tokenId, uint256 price) public {
-        offers[numOffers] = Offer({
+        uint256 offerId = numOffers;
+        offers[offerId] = Offer({
             tokenId: tokenId,
             price: price,
             seller: msg.sender,
             buyer: address(0),
             active: true
         });
-        uint256 offerId = numOffers;
         numOffers += 1;
 
         nftAddress.safeTransferFrom(
@@ -55,7 +59,7 @@ contract Marketplace {
             address(this),
             offers[offerId].tokenId
         );
-        emit NewOffer(offerId);
+        emit NewOffer(offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
     }
 
     function acceptBuyOffer(uint256 offerId) public {
