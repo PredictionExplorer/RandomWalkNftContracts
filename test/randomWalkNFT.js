@@ -51,6 +51,50 @@ describe("RandomWalkNFT contract", function () {
     expect(await hardhatRandomWalkNFTweek.totalSupply()).to.equal(1);
   });
 
+  it("The minter withdraws and gets the money", async function () {
+    for(i = 0; i < 100; i++) {
+      mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+      await hardhatRandomWalkNFT.mint({value: mintPrice});
+    }
+    expect(await hardhatRandomWalkNFT.lastMinter()).to.equal(owner.address);
+
+    refund = await ethers.provider.getBalance(hardhatRandomWalkNFT.address) / 2;
+    initial_balance = await ethers.provider.getBalance(owner.address);
+
+    await expect(hardhatRandomWalkNFT.withdraw()).to.be.revertedWith('Not enough time has elapsed.');
+
+    await ethers.provider.send("evm_increaseTime", [30 * 24 * 3600 - 15]);
+    await ethers.provider.send("evm_mine");
+
+    await expect(hardhatRandomWalkNFT.withdraw()).to.be.revertedWith('Not enough time has elapsed.');
+
+    await ethers.provider.send("evm_increaseTime", [30]);
+    await ethers.provider.send("evm_mine");
+
+    await expect(hardhatRandomWalkNFT.connect(addr1).withdraw()).to.be.revertedWith('Only last minter can withdraw.');
+
+    init_user_balance = await ethers.provider.getBalance(owner.address);
+    init_contract_balance = await ethers.provider.getBalance(hardhatRandomWalkNFT.address);
+
+    await hardhatRandomWalkNFT.withdraw();
+
+    final_user_balance = await ethers.provider.getBalance(owner.address);
+    final_contract_balance = await ethers.provider.getBalance(hardhatRandomWalkNFT.address);
+
+    expect(final_contract_balance * 2 >= init_contract_balance);
+    expect(final_contract_balance * 1.99 < init_contract_balance);
+
+    expect(init_user_balance + final_contract_balance < final_user_balance * 1.01);
+    expect(init_user_balance + final_contract_balance > final_user_balance * 0.99);
+
+    expect(await hardhatRandomWalkNFT.lastMinter()).to.equal("0x0000000000000000000000000000000000000000");
+
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.connect(addr1).mint({value: mintPrice});
+    console.log("last minter " + await hardhatRandomWalkNFT.lastMinter());
+    expect(await hardhatRandomWalkNFT.lastMinter()).to.equal(addr1.address);
+  });
+
   it("Initial supply should be zero", async function () {
     expect(await hardhatRandomWalkNFT.totalSupply()).to.equal(0);
   });
