@@ -91,7 +91,6 @@ describe("RandomWalkNFT contract", function () {
 
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.connect(addr1).mint({value: mintPrice});
-    console.log("last minter " + await hardhatRandomWalkNFT.lastMinter());
     expect(await hardhatRandomWalkNFT.lastMinter()).to.equal(addr1.address);
   });
 
@@ -127,7 +126,6 @@ describe("RandomWalkNFT contract", function () {
     init_bal2 = await addr2.getBalance();
 
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
-    console.log(mintPrice);
 
     await hardhatRandomWalkNFT.connect(addr1).mint({value: mintPrice});
     await hardhatRandomWalkNFT2.connect(addr2).mint({value: mintPrice.mul(10000)});
