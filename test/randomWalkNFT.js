@@ -97,55 +97,6 @@ describe("RandomWalkNFT contract", function () {
     await expect(hardhatRandomWalkNFT.connect(addr1).withdraw()).to.be.revertedWith('Only last minter can withdraw.');
 
     init_user_balance = await ethers.provider.getBalance(owner.address);
-  });
-
-  it("Can't mint before sale is open", async function () {
-    const blockNumBefore = await ethers.provider.getBlockNumber();
-    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
-    const targetTimestamp = blockBefore.timestamp + 7 * 24 * 3600;
-    hardhatRandomWalkNFTweek = await RandomWalkNFT.deploy("", targetTimestamp);
-
-    mintPrice = await hardhatRandomWalkNFTweek.getMintPrice();
-    await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
-
-    await ethers.provider.send("evm_increaseTime", [7 * 24 * 3600 - 15]);
-    await ethers.provider.send("evm_mine");
-
-    await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
-    expect(await hardhatRandomWalkNFTweek.totalSupply()).to.equal(0);
-
-    await ethers.provider.send("evm_increaseTime", [60]);
-    await ethers.provider.send("evm_mine");
-
-    await hardhatRandomWalkNFTweek.mint({value: mintPrice});
-    expect(await hardhatRandomWalkNFTweek.totalSupply()).to.equal(1);
-  });
-
-  it("The minter withdraws and gets the money", async function () {
-    totalSpent = ethers.BigNumber.from("0");
-    for(i = 0; i < 100; i++) {
-      mintPrice = await hardhatRandomWalkNFT.getMintPrice();
-      totalSpent = totalSpent.add(mintPrice);
-      await hardhatRandomWalkNFT.mint({value: mintPrice});
-    }
-    expect(await hardhatRandomWalkNFT.lastMinter()).to.equal(owner.address);
-
-    refund = await ethers.provider.getBalance(hardhatRandomWalkNFT.address) / 2;
-    initial_balance = await ethers.provider.getBalance(owner.address);
-
-    await expect(hardhatRandomWalkNFT.withdraw()).to.be.revertedWith('Not enough time has elapsed.');
-
-    await ethers.provider.send("evm_increaseTime", [30 * 24 * 3600 - 15]);
-    await ethers.provider.send("evm_mine");
-
-    await expect(hardhatRandomWalkNFT.withdraw()).to.be.revertedWith('Not enough time has elapsed.');
-
-    await ethers.provider.send("evm_increaseTime", [30]);
-    await ethers.provider.send("evm_mine");
-
-    await expect(hardhatRandomWalkNFT.connect(addr1).withdraw()).to.be.revertedWith('Only last minter can withdraw.');
-
-    init_user_balance = await ethers.provider.getBalance(owner.address);
     init_contract_balance = await ethers.provider.getBalance(hardhatRandomWalkNFT.address);
 
     await hardhatRandomWalkNFT.withdraw();
