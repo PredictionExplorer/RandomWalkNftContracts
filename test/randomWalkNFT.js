@@ -6,6 +6,9 @@ describe("RandomWalkNFT contract", function () {
   let RandomWalkNFT;
   let hardhatRandomWalkNFT;
 
+  let RandomWalkNF2;
+  let hardhatRandomWalkNF2;
+
   let Marketplace;
   let hardhatMarketplace;
 
@@ -20,6 +23,9 @@ describe("RandomWalkNFT contract", function () {
 
     RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
     hardhatRandomWalkNFT = await RandomWalkNFT.deploy(0, 0);
+
+    RandomWalkNFT2 = await ethers.getContractFactory("RandomWalkNFT");
+    hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy(0, 0);
 
     Marketplace = await ethers.getContractFactory("Marketplace");
     hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
@@ -52,5 +58,21 @@ describe("RandomWalkNFT contract", function () {
     expect(await hardhatRandomWalkNFT.balanceOf(addr2.address)).to.equal(0);
   });
 
+  it("Should refund if sent too much", async function () {
+    init_bal1 = await addr1.getBalance();
+    init_bal2 = await addr2.getBalance();
+
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    console.log(mintPrice);
+
+    await hardhatRandomWalkNFT.connect(addr1).mint({value: mintPrice});
+    await hardhatRandomWalkNFT2.connect(addr2).mint({value: mintPrice.mul(10000)});
+
+    bal_diff_1 = init_bal1 - (await addr1.getBalance());
+    bal_diff_2 = init_bal2 - (await addr2.getBalance());
+
+    expect(bal_diff_2 < 2 * bal_diff_1);
+    expect(bal_diff_1 < 2 * bal_diff_2);
+  });
 
 });
