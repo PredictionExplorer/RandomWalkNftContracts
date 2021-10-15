@@ -1,5 +1,10 @@
 const { expect } = require("chai");
 
+function valuesClose(x, y) {
+  r = x.sub(y).abs()
+  comp = ethers.utils.parseEther('0.0001');
+  return r.lt(comp);
+}
 
 describe("RandomWalkNFT contract", function () {
 
@@ -16,7 +21,6 @@ describe("RandomWalkNFT contract", function () {
   let addr1;
   let addr2;
   let addrs;
-
 
   beforeEach(async function () {
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
@@ -52,8 +56,10 @@ describe("RandomWalkNFT contract", function () {
   });
 
   it("The minter withdraws and gets the money", async function () {
+    totalSpent = ethers.BigNumber.from("0");
     for(i = 0; i < 100; i++) {
       mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+      totalSpent = totalSpent.add(mintPrice);
       await hardhatRandomWalkNFT.mint({value: mintPrice});
     }
     expect(await hardhatRandomWalkNFT.lastMinter()).to.equal(owner.address);
@@ -81,11 +87,9 @@ describe("RandomWalkNFT contract", function () {
     final_user_balance = await ethers.provider.getBalance(owner.address);
     final_contract_balance = await ethers.provider.getBalance(hardhatRandomWalkNFT.address);
 
-    expect(final_contract_balance * 2 >= init_contract_balance);
-    expect(final_contract_balance * 1.99 < init_contract_balance);
-
-    expect(init_user_balance + final_contract_balance < final_user_balance * 1.01);
-    expect(init_user_balance + final_contract_balance > final_user_balance * 0.99);
+    expect(valuesClose(final_contract_balance, totalSpent.div(2))).to.equal(true);
+    expect(valuesClose(final_contract_balance.mul(2), init_contract_balance)).to.equal(true);
+    expect(valuesClose(init_user_balance.add(final_contract_balance), final_user_balance)).to.equal(true);
 
     expect(await hardhatRandomWalkNFT.lastMinter()).to.equal("0x0000000000000000000000000000000000000000");
 
