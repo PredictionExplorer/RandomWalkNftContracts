@@ -23,12 +23,32 @@ describe("RandomWalkNFT contract", function () {
 
     RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
     hardhatRandomWalkNFT = await RandomWalkNFT.deploy(0, 0);
-
-    RandomWalkNFT2 = await ethers.getContractFactory("RandomWalkNFT");
     hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy(0, 0);
 
     Marketplace = await ethers.getContractFactory("Marketplace");
     hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
+  });
+
+  it("Can't mint before sale is open", async function () {
+    const blockNumBefore = await ethers.provider.getBlockNumber();
+    const blockBefore = await ethers.provider.getBlock(blockNumBefore);
+    const targetTimestamp = blockBefore.timestamp + 7 * 24 * 3600;
+    hardhatRandomWalkNFTweek = await RandomWalkNFT.deploy("", targetTimestamp);
+
+    mintPrice = await hardhatRandomWalkNFTweek.getMintPrice();
+    await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
+
+    await ethers.provider.send("evm_increaseTime", [7 * 24 * 3600 - 15]);
+    await ethers.provider.send("evm_mine");
+
+    await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
+    expect(await hardhatRandomWalkNFTweek.totalSupply()).to.equal(0);
+
+    await ethers.provider.send("evm_increaseTime", [60]);
+    await ethers.provider.send("evm_mine");
+
+    await hardhatRandomWalkNFTweek.mint({value: mintPrice});
+    expect(await hardhatRandomWalkNFTweek.totalSupply()).to.equal(1);
   });
 
   it("Initial supply should be zero", async function () {
