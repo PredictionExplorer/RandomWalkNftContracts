@@ -1,16 +1,18 @@
 import "./randomWalkNFT.sol";
 
-contract MintMany {
+contract MintMany is Ownable {
 
     RandomWalkNFT nftAddress;
-    address target;
 
     constructor (address nftAddr) {
         nftAddress = RandomWalkNFT(nftAddr);
     }
 
-    function mintMultiple(uint256 num) public payable {
-        target = msg.sender;
+    function setNFTAddr(address newAddr) public onlyOwner {
+        nftAddress = RandomWalkNFT(newAddr);
+    }
+
+    function mintMultiple(uint256 num) public onlyOwner payable {
         for (uint256 i = 0; i < num; i++) {
             uint256 mintPrice = nftAddress.getMintPrice();
             nftAddress.mint{value: mintPrice}();
@@ -20,7 +22,7 @@ contract MintMany {
     function onERC721Received(address operator, address from, uint256 tokenId, bytes calldata data) public returns(bytes4) {
         nftAddress.safeTransferFrom(
             address(this),
-            target,
+            owner(),
             tokenId
         );
         bytes4 _ERC721_RECEIVED = 0x150b7a02;
