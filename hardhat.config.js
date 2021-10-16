@@ -3,7 +3,15 @@ require("@nomiclabs/hardhat-waffle");
 require("dotenv").config();
 
 module.exports = {
-  solidity: "0.8.9",
+  solidity: {
+    version: "0.8.9",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 20000,
+      },
+    },
+  },
   networks: {
     rinkeby: {
       url: `https://rinkeby.infura.io/v3/9aa3d95b3bc440fa88ea12eaa4456161`,
