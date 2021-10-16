@@ -147,6 +147,9 @@ describe("RandomWalkNFT contract", function () {
     expect(valuesClose(final_contract_balance.mul(2), init_contract_balance)).to.equal(true);
     expect(valuesClose(init_user_balance.add(final_contract_balance), final_user_balance)).to.equal(true);
 
+    expect(await hardhatRandomWalkNFT.withdrawalNums(99)).to.equal(1);
+    expect(await hardhatRandomWalkNFT.withdrawalAmounts(99)).to.equal(totalSpent.div(2));
+
     expect(await hardhatRandomWalkNFT.lastMinter()).to.equal("0x0000000000000000000000000000000000000000");
 
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
