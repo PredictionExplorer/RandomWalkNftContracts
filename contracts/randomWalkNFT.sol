@@ -103,8 +103,8 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         lastMinter = address(0);
         // Token that trigerred the withdrawal
         uint256 tokenId = totalSupply() - 1;
-        withdrawalNums[tokenId] = numWithdrawals;
         numWithdrawals += 1;
+        withdrawalNums[tokenId] = numWithdrawals;
         uint256 amount = withdrawalAmount();
         withdrawalAmounts[tokenId] = amount;
         // Transfer half of the balance to the last minter.
