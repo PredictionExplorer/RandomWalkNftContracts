@@ -8,11 +8,11 @@ pragma solidity ^0.8.9;
 
 contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
-    uint256 public saleTime;
+    uint256 public saleTime = 1635289200; // Oct 26 2021 19:00 New York Time
     uint256 public price = 10**15; // Price starts at .001 eth
 
     // How long to wait until the last minter can withdraw
-    uint256 public withdrawalWaitSeconds = 3600 * 24 * 30;
+    uint256 public withdrawalWaitSeconds = 3600 * 24 * 30; // 1 month
 
     // Seeds
     mapping(uint256 => bytes32) public seeds;
@@ -37,8 +37,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
 
-    constructor(string memory baseURI, uint256 _saleTime) ERC721("RandomWalkNFT", "RWLK") {
-        saleTime = _saleTime;
+    constructor(string memory baseURI) ERC721("RandomWalkNFT", "RWLK") {
         setBaseURI(baseURI);
         entropy = keccak256(abi.encode(
             "A two-dimensional random walk will return to the point where it started, but a three-dimensional one may not.",
@@ -50,12 +49,12 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     }
 
     // IMPORTANT: Remove this for the final deployment
-    function setSaleTime(uint256 newSaleTime) public {
+    function setSaleTime(uint256 newSaleTime) public onlyOwner {
         saleTime = newSaleTime;
     }
 
     // IMPORTANT: Remove this for the final deployment
-    function setWithdrawalWait(uint256 newTime) public {
+    function setWithdrawalWait(uint256 newTime) public onlyOwner {
         withdrawalWaitSeconds = newTime;
     }
 
