@@ -37,8 +37,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
 
-    constructor(string memory baseURI) ERC721("RandomWalkNFT", "RWLK") {
-        setBaseURI(baseURI);
+    constructor() ERC721("RandomWalkNFT", "RWLK") {
         entropy = keccak256(abi.encode(
             "A two-dimensional random walk will return to the point where it started, but a three-dimensional one may not.",
             block.timestamp, blockhash(block.number)));

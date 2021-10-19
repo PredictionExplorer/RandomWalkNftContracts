@@ -31,6 +31,7 @@ contract Marketplace {
         nftAddress = IERC721(nftAddr);
     }
     function makeBuyOffer(uint256 tokenId) payable public {
+        require(nftAddress.ownerOf(tokenId) != address(0));
         uint256 offerId = numOffers;
         offers[offerId] = Offer({
             tokenId: tokenId,

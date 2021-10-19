@@ -26,9 +26,10 @@ describe("RandomWalkNFT contract", function () {
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
     RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
-    hardhatRandomWalkNFT = await RandomWalkNFT.deploy(0, 0);
-    hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy(0, 0);
-
+    hardhatRandomWalkNFT = await RandomWalkNFT.deploy();
+    await hardhatRandomWalkNFT.setSaleTime(0);
+    hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy();
+    await hardhatRandomWalkNFT2.setSaleTime(0);
     Marketplace = await ethers.getContractFactory("Marketplace");
     hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
   });
@@ -72,6 +73,13 @@ describe("RandomWalkNFT contract", function () {
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(addr1.address);
   });
 
+  it("Can't make buy offer for non-existent token", async function () {
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.mint({value: mintPrice});
+    let price = ethers.utils.parseEther('2.123');
+    await expect(hardhatMarketplace.connect(addr1).makeBuyOffer(1, {value: price})).to.be.revertedWith("ERC721: owner query for nonexistent token");
+  });
+
   it("Sale offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
@@ -93,7 +101,8 @@ describe("RandomWalkNFT contract", function () {
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
     const targetTimestamp = blockBefore.timestamp + 7 * 24 * 3600;
-    hardhatRandomWalkNFTweek = await RandomWalkNFT.deploy("", targetTimestamp);
+    hardhatRandomWalkNFTweek = await RandomWalkNFT.deploy();
+    await hardhatRandomWalkNFTweek.setSaleTime(targetTimestamp);
 
     mintPrice = await hardhatRandomWalkNFTweek.getMintPrice();
     await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
