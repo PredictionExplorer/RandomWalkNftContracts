@@ -142,9 +142,9 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
         emit MintEvent(tokenId, lastMinter, entropy, price);
 
-        if (msg.value > newPrice) {
+        if (msg.value > price) {
             // Return the extra money to the minter.
-            (bool success, ) = lastMinter.call{value: msg.value - newPrice}("");
+            (bool success, ) = lastMinter.call{value: msg.value - price}("");
             require(success, "Transfer failed.");
         }
     }
