@@ -33,6 +33,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
     event WithdrawalEvent(uint256 tokenId, address destination, uint256 amount);
     event TokenNameEvent(uint256 tokenId, string newName);
+    event MintEvent(uint256 indexed tokenId, address indexed owner, bytes32 seed, uint256 price);
 
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
@@ -121,22 +122,25 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
             block.timestamp >= saleTime,
             "The sale is not open yet."
         );
+
+        lastMinter = _msgSender();
+        lastMintTime = block.timestamp;
+
         price = newPrice;
         entropy = keccak256(abi.encode(
             entropy,
             block.timestamp,
             blockhash(block.number),
-            _msgSender()));
+            lastMinter));
         uint256 tokenId = totalSupply();
         seeds[tokenId] = entropy;
-        _safeMint(_msgSender(), tokenId);
+        _safeMint(lastMinter, tokenId);
 
-        lastMinter = _msgSender();
-        lastMintTime = block.timestamp;
+        emit MintEvent(tokenId, lastMinter, entropy, price);
 
         if (msg.value > newPrice) {
             // Return the extra money to the minter.
-            (bool success, ) = _msgSender().call{value: msg.value - newPrice}("");
+            (bool success, ) = lastMinter.call{value: msg.value - newPrice}("");
             require(success, "Transfer failed.");
         }
     }
