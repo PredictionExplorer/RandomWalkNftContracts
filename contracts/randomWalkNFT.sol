@@ -28,6 +28,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
     address public lastMinter = address(0);
     uint256 public lastMintTime = saleTime;
+    uint256 public nextTokenId = 0;
 
     string private _baseTokenURI;
 
@@ -127,12 +128,15 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         lastMintTime = block.timestamp;
 
         price = newPrice;
+        uint256 tokenId = nextTokenId;
+        nextTokenId += 1;
+
         entropy = keccak256(abi.encode(
             entropy,
             block.timestamp,
             blockhash(block.number),
+            tokenId,
             lastMinter));
-        uint256 tokenId = totalSupply();
         seeds[tokenId] = entropy;
         _safeMint(lastMinter, tokenId);
 
