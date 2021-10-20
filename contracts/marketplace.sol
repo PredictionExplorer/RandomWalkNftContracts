@@ -7,6 +7,7 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 contract Marketplace {
 
     struct Offer {
+        IERC721 nftAddress;
         uint256 tokenId;
         uint256 price;
         address seller;
@@ -14,7 +15,9 @@ contract Marketplace {
         bool active;
     }
 
-    event NewOffer(uint256 indexed offerId,
+    event NewOffer(
+        IERC721 indexed nftAddress,
+        uint256 indexed offerId,
         uint256 indexed tokenId,
         address seller,
         address buyer,
@@ -22,18 +25,14 @@ contract Marketplace {
     event ItemBought(uint256 indexed offerId);
     event OfferCanceled(uint256 indexed offerId);
 
-    IERC721 nftAddress;
-
     mapping (uint256 => Offer) public offers;
     uint256 public numOffers = 0;
 
-    constructor (address nftAddr) {
-        nftAddress = IERC721(nftAddr);
-    }
-    function makeBuyOffer(uint256 tokenId) payable public {
-        require(nftAddress.ownerOf(tokenId) != address(0));
+    function makeBuyOffer(IERC721 _nftAddress, uint256 tokenId) payable public {
+        require(_nftAddress.ownerOf(tokenId) != address(0));
         uint256 offerId = numOffers;
         offers[offerId] = Offer({
+            nftAddress: _nftAddress,
             tokenId: tokenId,
             price: msg.value,
             seller: address(0),
@@ -41,12 +40,13 @@ contract Marketplace {
             active: true
         });
         numOffers += 1;
-        emit NewOffer(offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
+        emit NewOffer(_nftAddress, offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
     }
 
-    function makeSellOffer(uint256 tokenId, uint256 price) public {
+    function makeSellOffer(IERC721 _nftAddress, uint256 tokenId, uint256 price) public {
         uint256 offerId = numOffers;
         offers[offerId] = Offer({
+            nftAddress: _nftAddress,
             tokenId: tokenId,
             price: price,
             seller: msg.sender,
@@ -55,12 +55,12 @@ contract Marketplace {
         });
         numOffers += 1;
 
-        nftAddress.safeTransferFrom(
+        offers[offerId].nftAddress.safeTransferFrom(
             offers[offerId].seller,
             address(this),
             offers[offerId].tokenId
         );
-        emit NewOffer(offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
+        emit NewOffer(_nftAddress, offerId, tokenId, offers[offerId].seller, offers[offerId].buyer, offers[offerId].price);
     }
 
     function acceptBuyOffer(uint256 offerId) public {
@@ -70,7 +70,7 @@ contract Marketplace {
         offers[offerId].seller = msg.sender;
         offers[offerId].active = false;
 
-        nftAddress.safeTransferFrom(
+        offers[offerId].nftAddress.safeTransferFrom(
             offers[offerId].seller,
             offers[offerId].buyer,
             offers[offerId].tokenId
@@ -88,7 +88,7 @@ contract Marketplace {
         offers[offerId].buyer = msg.sender;
         offers[offerId].active = false;
 
-        nftAddress.safeTransferFrom(
+       offers[offerId].nftAddress.safeTransferFrom(
             address(this),
             offers[offerId].buyer,
             offers[offerId].tokenId
@@ -115,7 +115,7 @@ contract Marketplace {
         require(offers[offerId].seller == msg.sender, "Only the seller can cancel offer.");
 
         offers[offerId].active = false;
-        nftAddress.safeTransferFrom(
+        offers[offerId].nftAddress.safeTransferFrom(
             address(this),
             offers[offerId].seller,
             offers[offerId].tokenId
@@ -132,17 +132,17 @@ contract Marketplace {
      * Returns a list of tokens that are for sale by a certain address.
      * Each value should appear only once.
      */
-    function getSellTokenBy(address seller) public view returns(uint256[] memory){
+    function getSellTokenBy(IERC721 _nftAddress, address seller) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].seller == seller) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].seller == seller) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].seller == seller) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].seller == seller) {
                 result[k] = offers[i].tokenId;
                 k += 1;
             }
@@ -154,17 +154,17 @@ contract Marketplace {
      * Returns a list of tokens that a certain address is offering to buy.
      * (Theoretically, there could be duplicates here.)
      */
-    function getBuyTokensBy(address buyer) public view returns(uint256[] memory){
+    function getBuyTokensBy(IERC721 _nftAddress, address buyer) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].buyer == buyer) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].buyer == buyer) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].buyer == buyer) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].buyer == buyer) {
                 result[k] = offers[i].tokenId;
                 k += 1;
             }
@@ -175,17 +175,17 @@ contract Marketplace {
     /**
      * Returns a list of offersIds that are on sale by a certain address.
      */
-    function getSellOffersBy(address seller) public view returns(uint256[] memory){
+    function getSellOffersBy(IERC721 _nftAddress, address seller) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].seller == seller) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].seller == seller) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].seller == seller) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].seller == seller) {
                 result[k] = i;
                 k += 1;
             }
@@ -196,17 +196,17 @@ contract Marketplace {
     /**
      * Returns a list of offersIds where a certain address is trying to buy.
      */
-    function getBuyOffersBy(address buyer) public view returns(uint256[] memory){
+    function getBuyOffersBy(IERC721 _nftAddress, address buyer) public view returns(uint256[] memory){
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].buyer == buyer) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].buyer == buyer) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].buyer == buyer) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].buyer == buyer) {
                 result[k] = i;
                 k += 1;
             }
@@ -214,17 +214,17 @@ contract Marketplace {
         return result;
     }
 
-    function getBuyOffers(uint256 tokenId) public view returns(uint256[] memory) {
+    function getBuyOffers(IERC721 _nftAddress, uint256 tokenId) public view returns(uint256[] memory) {
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].active && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
+            if (offers[i].active && offers[i].nftAddress == _nftAddress && offers[i].tokenId == tokenId && offers[i].seller == address(0)) {
                 result[k] = i;
                 k += 1;
             }
@@ -232,17 +232,17 @@ contract Marketplace {
         return result;
     }
 
-    function getSellOffers(uint256 tokenId) public view returns(uint256[] memory) {
+    function getSellOffers(IERC721 _nftAddress, uint256 tokenId) public view returns(uint256[] memory) {
         uint256 size = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == address(0)) {
+            if (offers[i].tokenId == tokenId && offers[i].nftAddress == _nftAddress && offers[i].active && offers[i].buyer == address(0)) {
                 size += 1;
             }
         }
         uint256[] memory result = new uint256[](size);
         uint256 k = 0;
         for (uint256 i = 0; i < numOffers; i++) {
-            if (offers[i].tokenId == tokenId && offers[i].active && offers[i].buyer == address(0)) {
+            if (offers[i].tokenId == tokenId && offers[i].nftAddress == _nftAddress && offers[i].active && offers[i].buyer == address(0)) {
                 result[k] = i;
                 k += 1;
             }
@@ -251,3 +251,4 @@ contract Marketplace {
     }
 
 }
+

@@ -31,14 +31,14 @@ describe("RandomWalkNFT contract", function () {
     hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy();
     await hardhatRandomWalkNFT2.setSaleTime(0);
     Marketplace = await ethers.getContractFactory("Marketplace");
-    hardhatMarketplace = await Marketplace.deploy(hardhatRandomWalkNFT.address);
+    hardhatMarketplace = await Marketplace.deploy();
   });
 
   it("Cancel Buy offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
     let price = ethers.utils.parseEther('2.123');
-    await hardhatMarketplace.connect(addr1).makeBuyOffer(0, {value: price});
+    await hardhatMarketplace.connect(addr1).makeBuyOffer(hardhatRandomWalkNFT.address, 0, {value: price});
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
     await expect(hardhatMarketplace.connect(addr1).cancelSellOffer(0)).to.be.revertedWith("Must be a sell offer");
     initial_balance = await ethers.provider.getBalance(addr1.address);
@@ -52,7 +52,7 @@ describe("RandomWalkNFT contract", function () {
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(owner.address);
     let price = ethers.utils.parseEther('2.123');
-    await hardhatMarketplace.makeSellOffer(0, price);
+    await hardhatMarketplace.makeSellOffer(hardhatRandomWalkNFT.address, 0, price);
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.not.equal(owner.address);
     await expect(hardhatMarketplace.cancelBuyOffer(0)).to.be.revertedWith("Must be a buy offer");
     await hardhatMarketplace.cancelSellOffer(0);
@@ -64,7 +64,7 @@ describe("RandomWalkNFT contract", function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
     let price = ethers.utils.parseEther('2.123');
-    await hardhatMarketplace.connect(addr1).makeBuyOffer(0, {value: price});
+    await hardhatMarketplace.connect(addr1).makeBuyOffer(hardhatRandomWalkNFT.address, 0, {value: price});
     await expect(hardhatMarketplace.acceptBuyOffer(0)).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
     initial_balance = await ethers.provider.getBalance(owner.address);
@@ -77,16 +77,16 @@ describe("RandomWalkNFT contract", function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
     let price = ethers.utils.parseEther('2.123');
-    await expect(hardhatMarketplace.connect(addr1).makeBuyOffer(1, {value: price})).to.be.revertedWith("ERC721: owner query for nonexistent token");
+    await expect(hardhatMarketplace.connect(addr1).makeBuyOffer(hardhatRandomWalkNFT.address, 1, {value: price})).to.be.revertedWith("ERC721: owner query for nonexistent token");
   });
 
   it("Sale offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
-    await expect(hardhatMarketplace.makeSellOffer(0, ethers.utils.parseEther('0.123'))).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');;
+    await expect(hardhatMarketplace.makeSellOffer(hardhatRandomWalkNFT.address, 0, ethers.utils.parseEther('0.123'))).to.be.revertedWith('ERC721: transfer caller is not owner nor approved');;
     await hardhatRandomWalkNFT.setApprovalForAll(hardhatMarketplace.address, true);
     let price = ethers.utils.parseEther('3.123');
-    await hardhatMarketplace.makeSellOffer(0, price);
+    await hardhatMarketplace.makeSellOffer(hardhatRandomWalkNFT.address, 0, price);
     initial_balance = await ethers.provider.getBalance(owner.address);
     await expect(hardhatMarketplace.connect(addr1).acceptBuyOffer(0)).to.be.revertedWith("Must be a buy offer");
     await expect(hardhatMarketplace.connect(addr1).acceptSellOffer(0, {value: price.sub(1)})).to.be.revertedWith("Incorrect value sent.");
