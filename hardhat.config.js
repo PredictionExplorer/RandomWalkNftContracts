@@ -1,5 +1,6 @@
 require("@nomiclabs/hardhat-etherscan");
 require("@nomiclabs/hardhat-waffle");
+require('hardhat-abi-exporter');
 require("dotenv").config();
 
 module.exports = {
@@ -11,6 +12,14 @@ module.exports = {
         runs: 20000,
       },
     },
+  },
+  abiExporter: {
+    path: './abi',
+    clear: true,
+    flat: true,
+    only: ['RandomWalkNFT', 'Marketplace'],
+    spacing: 2,
+    pretty: false,
   },
   networks: {
     rinkeby: {
