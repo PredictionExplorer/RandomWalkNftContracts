@@ -60,6 +60,12 @@ describe("RandomWalkNFT contract", function () {
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(owner.address);
   });
 
+  it("Token burn should be impossible", async function () {
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.mint({value: mintPrice});
+    await expect(hardhatRandomWalkNFT["safeTransferFrom(address,address,uint256)"](owner.address, "0x0000000000000000000000000000000000000000", 0)).to.be.revertedWith("ERC721: transfer to the zero address");
+  });
+
   it("Buy offer should work", async function () {
     mintPrice = await hardhatRandomWalkNFT.getMintPrice();
     await hardhatRandomWalkNFT.mint({value: mintPrice});
