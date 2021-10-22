@@ -103,6 +103,16 @@ describe("RandomWalkNFT contract", function () {
     expect(await hardhatRandomWalkNFT.ownerOf(0)).to.equal(addr1.address);
   });
 
+  it("Name setting should work", async function () {
+    mintPrice = await hardhatRandomWalkNFT.getMintPrice();
+    await hardhatRandomWalkNFT.mint({value: mintPrice});
+    await hardhatRandomWalkNFT.setTokenName(0, "hello");
+    expect(await hardhatRandomWalkNFT.tokenNames(0)).to.equal("hello");
+    await hardhatRandomWalkNFT.setTokenName(0, "a".repeat(32));
+    expect(await hardhatRandomWalkNFT.tokenNames(0)).to.equal("a".repeat(32));
+    await expect(hardhatRandomWalkNFT.setTokenName(0, "a".repeat(33))).to.be.revertedWith("Token name is too long.");
+  });
+
   it("Can't mint before sale is open", async function () {
     const blockNumBefore = await ethers.provider.getBlockNumber();
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);

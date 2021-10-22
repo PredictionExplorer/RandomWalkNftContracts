@@ -64,6 +64,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
             _isApprovedOrOwner(_msgSender(), tokenId),
             "setTokenName caller is not owner nor approved"
         );
+        require(bytes(name).length <= 32, "Token name is too long.");
         tokenNames[tokenId] = name;
         emit TokenNameEvent(tokenId, name);
     }
