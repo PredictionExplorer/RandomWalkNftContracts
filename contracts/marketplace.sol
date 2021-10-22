@@ -22,7 +22,10 @@ contract Marketplace {
         address seller,
         address buyer,
         uint256 price);
-    event ItemBought(uint256 indexed offerId);
+    event ItemBought(
+        uint256 indexed offerId,
+        address indexed seller,
+        address indexed buyer);
     event OfferCanceled(uint256 indexed offerId);
 
     mapping (uint256 => Offer) public offers;
@@ -77,7 +80,7 @@ contract Marketplace {
         );
         (bool success, ) = offers[offerId].seller.call{value: offers[offerId].price}("");
         require(success, "Transfer failed.");
-        emit ItemBought(offerId);
+        emit ItemBought(offerId, offers[offerId].seller, offers[offerId].buyer);
     }
 
     function acceptSellOffer(uint256 offerId) public payable {
@@ -95,7 +98,7 @@ contract Marketplace {
         );
         (bool success, ) = offers[offerId].seller.call{value: offers[offerId].price}("");
         require(success, "Transfer failed.");
-        emit ItemBought(offerId);
+        emit ItemBought(offerId, offers[offerId].seller, offers[offerId].buyer);
     }
 
     function cancelBuyOffer(uint256 offerId) public {
@@ -251,4 +254,3 @@ contract Marketplace {
     }
 
 }
-
