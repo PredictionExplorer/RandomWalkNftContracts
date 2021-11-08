@@ -25,7 +25,7 @@ describe("RandomWalkNFT contract", function () {
   beforeEach(async function () {
     [owner, addr1, addr2, ...addrs] = await ethers.getSigners();
 
-    RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
+    RandomWalkNFT = await ethers.getContractFactory("TestRandomWalkNFT");
     hardhatRandomWalkNFT = await RandomWalkNFT.deploy();
     await hardhatRandomWalkNFT.setSaleTime(0);
     hardhatRandomWalkNFT2 = await RandomWalkNFT.deploy();

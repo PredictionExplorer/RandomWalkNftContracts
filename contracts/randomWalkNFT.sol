@@ -49,16 +49,6 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         _baseTokenURI = baseURI;
     }
 
-    // IMPORTANT: Remove this for the final deployment
-    function setSaleTime(uint256 newSaleTime) public onlyOwner {
-        saleTime = newSaleTime;
-    }
-
-    // IMPORTANT: Remove this for the final deployment
-    function setWithdrawalWait(uint256 newTime) public onlyOwner {
-        withdrawalWaitSeconds = newTime;
-    }
-
     function setTokenName(uint256 tokenId, string memory name) public {
         require(
             _isApprovedOrOwner(_msgSender(), tokenId),
