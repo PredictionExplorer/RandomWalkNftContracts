@@ -12,3 +12,6 @@ npx hardhat test
 
 ## Deploy to Rinkeby Arbitrum:
 npx hardhat run scripts/deploy.js --network rinkarby
+
+## Deploy ot Arbitrum:
+npx hardhat run scripts/deploy.js --network arbitrum
