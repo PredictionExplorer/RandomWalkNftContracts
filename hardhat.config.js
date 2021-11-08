@@ -17,7 +17,7 @@ module.exports = {
     path: './abi',
     clear: true,
     flat: true,
-    only: ['RandomWalkNFT', 'Marketplace'],
+    only: ['RandomWalkNFT', 'NFTMarket'],
     spacing: 2,
     pretty: false,
   },
