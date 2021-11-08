@@ -37,8 +37,7 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     event WithdrawalEvent(uint256 indexed tokenId, address destination, uint256 amount);
 
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
-    // TODO: Fix this!
-    string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
+    string public tokenGenerationScript = "ipfs://QmP7Z8VbQLpytzXnceeAAc4D5tX39XVzoEeUZwEK8aPk8W";
 
     constructor() ERC721("RandomWalkNFT", "RWLK") {
         entropy = keccak256(abi.encode(
