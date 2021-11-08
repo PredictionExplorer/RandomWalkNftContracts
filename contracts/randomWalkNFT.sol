@@ -8,7 +8,7 @@ pragma solidity ^0.8.9;
 
 contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
-    uint256 public saleTime = 1635289200; // Oct 26 2021 19:00 New York Time
+    uint256 public saleTime = 1636675200; // November 11 2021 19:00 New York Time
     uint256 public price = 10**15; // Price starts at .001 eth
 
     // How long to wait until the last minter can withdraw
