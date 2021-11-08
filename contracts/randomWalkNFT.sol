@@ -32,11 +32,12 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
 
     string private _baseTokenURI;
 
-    event WithdrawalEvent(uint256 tokenId, address destination, uint256 amount);
     event TokenNameEvent(uint256 tokenId, string newName);
     event MintEvent(uint256 indexed tokenId, address indexed owner, bytes32 seed, uint256 price);
+    event WithdrawalEvent(uint256 indexed tokenId, address destination, uint256 amount);
 
     // IPFS link to the Python script that generates images and videos for each NFT based on seed.
+    // TODO: Fix this!
     string public tokenGenerationScript = "ipfs://QmWEao2HjCvyHJSbYnWLyZj8HfFardxzuNh7AUk1jgyXTm";
 
     constructor() ERC721("RandomWalkNFT", "RWLK") {
@@ -89,18 +90,23 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
     function withdraw() public {
         require(_msgSender() == lastMinter, "Only last minter can withdraw.");
         require(timeUntilWithdrawal() == 0, "Not enough time has elapsed.");
+
         address destination = lastMinter;
         // Someone will need to mint again to become the last minter.
         lastMinter = address(0);
+
         // Token that trigerred the withdrawal
-        uint256 tokenId = totalSupply() - 1;
+        uint256 tokenId = nextTokenId - 1;
+        uint256 amount = withdrawalAmount();
+
         numWithdrawals += 1;
         withdrawalNums[tokenId] = numWithdrawals;
-        uint256 amount = withdrawalAmount();
         withdrawalAmounts[tokenId] = amount;
+
         // Transfer half of the balance to the last minter.
         (bool success, ) = destination.call{value: amount}("");
         require(success, "Transfer failed.");
+
         emit WithdrawalEvent(tokenId, destination, amount);
     }
 
@@ -131,13 +137,13 @@ contract RandomWalkNFT is ERC721Enumerable, Ownable {
         seeds[tokenId] = entropy;
         _safeMint(lastMinter, tokenId);
 
-        emit MintEvent(tokenId, lastMinter, entropy, price);
-
         if (msg.value > price) {
             // Return the extra money to the minter.
             (bool success, ) = lastMinter.call{value: msg.value - price}("");
             require(success, "Transfer failed.");
         }
+
+        emit MintEvent(tokenId, lastMinter, entropy, price);
     }
 
     // Returns a list of token Ids owned by _owner.

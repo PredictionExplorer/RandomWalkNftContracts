@@ -118,7 +118,8 @@ describe("RandomWalkNFT contract", function () {
     const blockBefore = await ethers.provider.getBlock(blockNumBefore);
     const targetTimestamp = blockBefore.timestamp + 7 * 24 * 3600;
     hardhatRandomWalkNFTweek = await RandomWalkNFT.deploy();
-    await hardhatRandomWalkNFTweek.setSaleTime(targetTimestamp);
+    await expect(hardhatRandomWalkNFTweek.connect(addr1).setSaleTime(targetTimestamp)).to.be.revertedWith("Ownable: caller is not the owner");
+    await hardhatRandomWalkNFTweek.connect(owner).setSaleTime(targetTimestamp);
 
     mintPrice = await hardhatRandomWalkNFTweek.getMintPrice();
     await expect(hardhatRandomWalkNFTweek.mint({value: mintPrice})).to.be.revertedWith('The sale is not open yet.');
