@@ -5,10 +5,6 @@ async function main() {
 
   console.log("Account balance:", (await deployer.getBalance()).toString());
 
-  const RandomWalkNFT = await ethers.getContractFactory("RandomWalkNFT");
-  const hardhatRandomWalkNFT = await RandomWalkNFT.deploy();
-  console.log("hardhatRandomWalkNFT address:", hardhatRandomWalkNFT.address);
-
   const NFTMarket = await ethers.getContractFactory("NFTMarket");
   const hardhatNFTMarket = await NFTMarket.deploy();
   console.log("hardhatNFTMarket address:", hardhatNFTMarket.address);
