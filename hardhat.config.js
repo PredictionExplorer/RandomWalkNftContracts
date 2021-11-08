@@ -30,6 +30,11 @@ module.exports = {
       url: `https://rinkeby.arbitrum.io/rpc`,
       accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
     },
+    arbitrum: {
+      url: `https://arb1.arbitrum.io/rpc`,
+      accounts: process.env.MAINNET_PRIVATE_KEY !== undefined ? [process.env.MAINNET_PRIVATE_KEY] : [],
+    },
+
   },
   etherscan: {
     apiKey: process.env.API_KEY,
