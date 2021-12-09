@@ -1,10 +1,45 @@
 from PIL import Image, ImageDraw
+
 import cv2
 import hashlib
+import json
 import numpy as np
+import requests
 import sys
+import time
 
 VIDEO_FPS = 60
+ARBITRUM_RPC = 'https://arb1.arbitrum.io/rpc'
+RANDOM_WALK_NFT_ADDRESS = "0x895a6F444BE4ba9d124F61DF736605792B35D66b".lower()
+
+def make_req(params):
+    params = json.dumps(params)
+    headers = {'Content-Type': 'application/json'}
+    while True:
+        try:
+            r = requests.post(ARBITRUM_RPC, headers=headers, data=params)
+            return json.loads(r.text)
+        except Exception as e:
+            time.sleep(10)
+
+def pad_zeros(val):
+    v = str(hex(val))[2:]
+    return '0' * (64 - len(v)) + v
+
+def get_seed(token_id):
+    p = {}
+    p["to"] = RANDOM_WALK_NFT_ADDRESS
+
+    method = "f0503e80"
+    par = pad_zeros(token_id)
+    p["data"] = "0x" + method + par
+
+    params = {"jsonrpc":"2.0",
+              "method":"eth_call",
+              "params":[p, "latest"],"id":1}
+
+    res = make_req(params)
+    return res["result"]
 
 def random_generator(init_seed):
     '''Generate random bits.'''
@@ -209,21 +244,23 @@ def create_media(file_name, seed, background_color):
         out.release()
         print(f"{file_name}_{label}.mp4 saved.")
 
-    # Generate video with 1 starting point
-    walkers = [(-1, 1, True)]
-    generate_video(walkers, "single")
-
     # Generate video with 3 starting points
-    num_walkers = 3
-    walkers = []
-    for i in range(num_walkers):
-        k = i / num_walkers + (1 / (num_walkers * 2))
-        c = int(k * len(path))
-        walkers.append((c - 1, 1, True))
-        walkers.append((c, -1, True))
-    generate_video(walkers, "triple")
+    walkers = [(-1, 1, True), (len(path), -1, True)]
+    generate_video(walkers, "double")
 
 if __name__ == "__main__":
-    seed = sys.argv[1]
-    create_media("out", seed, "black")
-    create_media("out", seed, "white")
+    param = sys.argv[1]
+    file_name = "out"
+    if param.startswith("0x"):
+        seed = param
+    else:
+        seed = get_seed(int(param))
+        if seed == "0x0000000000000000000000000000000000000000000000000000000000000000":
+            print(f"NFT #{param} does not exist")
+            exit(0)
+        file_name = "{0:06}".format(int(param))
+        print('filename', file_name)
+    print(f"Seed: {seed}")
+
+    create_media(file_name, seed, "black")
+    create_media(file_name, seed, "white")
