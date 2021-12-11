@@ -188,16 +188,33 @@ def generate_image(horizontal_steps, vertical_steps, color_seed):
 
     C = np.array(list(zip(c1, c2, c3)))
 
-    min_x = min(horizontal_steps)
-    min_y = min(vertical_steps)
+    min_x = float("inf")
+    min_y = float("inf")
+    max_x = float("-inf")
+    max_y = float("-inf")
+    for x, y in path:
+        min_x = min(x, min_x)
+        min_y = min(y, min_y)
+        max_x = max(x, max_x)
+        max_y = max(y, max_y)
 
-    max_x = max(horizontal_steps)
-    max_y = max(vertical_steps)
+    min_x = int(min_x)
+    min_y = int(min_y)
+    max_x = int(max_x)
+    max_y = int(max_y)
+
 
     x_center = (min_x + max_x) / 2
     y_center = (min_y + max_y) / 2
 
-    target_size = (10000, 10000)
+    BRD = 1.1
+
+    x_range = int((max_x - min_x) * BRD)
+    y_range = int((max_y - min_y) * BRD)
+
+    target_size = (x_range, y_range)
+
+    print(target_size)
 
     im = Image.new('RGB', target_size, "black")
     draw = ImageDraw.Draw(im)
