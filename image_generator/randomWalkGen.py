@@ -64,11 +64,7 @@ def random_int(largest, gen):
         num = (num << 1) + next(gen)
     return num % largest
 
-def create_media(file_name, seed, background_color):
-    '''Generate a PNG image and 2 MP4 videos.'''
-
-    file_name += '_' + background_color
-
+def calc_num_steps(seed):
     gen = random_generator(seed)
 
     horizontal_steps = []
@@ -113,22 +109,64 @@ def create_media(file_name, seed, background_color):
         if longer_range >= target_size[0] or shorter_range >= target_size[1]:
             break
 
+    flipped = False
     if x_range < y_range:
+        flipped = True
         vertical_steps, horizontal_steps = horizontal_steps, vertical_steps
         min_x, max_x, min_y, max_y = min_y, max_y, min_x, max_x
     x_range = max_x - min_x
     y_range = max_y - min_y
 
     num_steps = len(horizontal_steps)
-    print(f"Number of steps in walk: {num_steps}")
 
+    return num_steps, flipped
+
+def generate_steps(horizontal_steps, vertical_steps, num_steps, seed):
+    gen = random_generator(seed)
+
+    x = horizontal_steps[-1]
+    y = vertical_steps[-1]
+
+    for _ in range(num_steps):
+        a, b = next(gen), next(gen)
+        if (a, b) == (0, 0):
+            x += 1
+            horizontal_steps.append(1)
+            vertical_steps.append(0)
+        elif (a, b) == (0, 1):
+            x -= 1
+            horizontal_steps.append(-1)
+            vertical_steps.append(0)
+        elif (a, b) == (1, 0):
+            y += 1
+            horizontal_steps.append(0)
+            vertical_steps.append(1)
+        elif (a, b) == (1, 1):
+            y -= 1
+            horizontal_steps.append(0)
+            vertical_steps.append(-1)
+
+
+def generate(list_num_steps, list_flipped, list_seed):
+    horizontal_steps = [0]
+    vertical_steps = [0]
+    for i in range(len(list_num_steps)):
+        if list_flipped[i]:
+            generate_steps(vertical_steps, horizontal_steps, list_num_steps[i], list_seed[i])
+        else:
+            generate_steps(horizontal_steps, vertical_steps, list_num_steps[i], list_seed[i])
+
+    return horizontal_steps, vertical_steps
+
+
+def generate_image(horizontal_steps, vertical_steps, color_seed):
+
+    num_steps = len(horizontal_steps)
     origin = np.zeros((1, 2))
-
     steps = np.stack((horizontal_steps, vertical_steps), axis=1)
-
     path = np.concatenate([origin, steps]).cumsum(0)
 
-    def random_color_1ch(num_steps):
+    def random_color_1ch(num_steps, gen):
         '''Geenrate colors for 1 channel.'''
         cur = 0
         result = []
@@ -141,126 +179,52 @@ def create_media(file_name, seed, background_color):
             result[i] = (result[i] - lowest) / (highest - lowest)
         return result
 
-    c1 = random_color_1ch(num_steps + 1)
-    c2 = random_color_1ch(num_steps + 1)
-    c3 = random_color_1ch(num_steps + 1)
+    num_steps = len(horizontal_steps)
+    gen = random_generator(color_seed)
+
+    c1 = random_color_1ch(num_steps + 1, gen)
+    c2 = random_color_1ch(num_steps + 1, gen)
+    c3 = random_color_1ch(num_steps + 1, gen)
 
     C = np.array(list(zip(c1, c2, c3)))
+
+    min_x = min(horizontal_steps)
+    min_y = min(vertical_steps)
+
+    max_x = max(horizontal_steps)
+    max_y = max(vertical_steps)
 
     x_center = (min_x + max_x) / 2
     y_center = (min_y + max_y) / 2
 
-    BORDER_PERCENT = 0.03
-    border = int(target_size[1] * BORDER_PERCENT)
+    target_size = (10000, 10000)
 
-    final_size = tuple(x + 2 * border for x in target_size)
-    im = Image.new('RGB', final_size, background_color)
+    im = Image.new('RGB', target_size, "black")
     draw = ImageDraw.Draw(im)
 
     for i, step in enumerate(path):
         x, y = step
-        x = int(x - x_center + target_size[0] / 2) + border
-        y = int(y - y_center + target_size[1] / 2) + border
+        x = int(x - x_center + target_size[0] / 2)
+        y = int(y - y_center + target_size[1] / 2)
         draw.point((x, y), fill=tuple(int(x * 255) for x in C[i]))
 
-    im.save(f"{file_name}.png", "PNG")
-    print(f"{file_name}.png saved.")
-
-    def generate_video(walkers, label):
-        '''Generate a video. num_walkers is the number of starting points for
-        the random walk.'''
-        images = []
-        im = Image.new('RGB', final_size, background_color)
-        images.append(im)
-        draw = ImageDraw.Draw(im)
-
-        visited_coordinates = np.zeros(final_size)
-
-        jump = len(path) // 600
-
-
-        visited_index = set()
-
-        def advance_walker(walker_num, draw):
-            index, direction, active = walkers[walker_num]
-            if not active:
-                return 0
-            new_index = index + direction
-
-            if new_index in visited_index or new_index < 0 or new_index >= len(path):
-                walkers[walker_num] = (index, direction, False)
-                return 0
-
-            walkers[walker_num] = (new_index, direction, True)
-
-            visited_index.add(new_index)
-
-            x, y = path[new_index]
-            x = int(x - x_center + target_size[0] / 2) + border
-            y = int(y - y_center + target_size[1] / 2) + border
-
-            if visited_coordinates[x][y] < new_index:
-                draw.point((x, y), fill=tuple(int(x * 255) for x in C[new_index]))
-                visited_coordinates[x][y] = new_index
-            return 1
-
-        walker_num = 0
-        since_frame = 0
-        while any(x[-1] for x in walkers):
-            since_frame += advance_walker(walker_num % len(walkers), draw)
-            walker_num += 1
-            if since_frame >= jump:
-                images.append(im)
-                im = im.copy()
-                draw = ImageDraw.Draw(im)
-                since_frame = 0
-            else:
-                since_frame += 1
-
-        def add_holds(images):
-            '''Add a few seconds before and at the end of the video.'''
-            result = []
-            INIT_HOLD_SECONDS = 0.3
-            blank = Image.new('RGB', final_size, background_color)
-
-            for _ in range(int(INIT_HOLD_SECONDS * VIDEO_FPS)):
-                result.append(blank)
-
-            result.extend(images)
-
-            END_HOLD_SECONDS = 2
-            for _ in range(END_HOLD_SECONDS * VIDEO_FPS):
-                result.append(images[-1])
-            return result
-
-        images = add_holds(images)
-
-        out = cv2.VideoWriter(f'{file_name}_{label}.mp4',cv2.VideoWriter_fourcc(*'MP4V'), VIDEO_FPS, final_size)
-
-        for i in range(len(images)):
-            cv_img = cv2.cvtColor(np.array(images[i]), cv2.COLOR_RGB2BGR)
-            out.write(cv_img)
-
-        out.release()
-        print(f"{file_name}_{label}.mp4 saved.")
-
-    # Generate video with 3 starting points
-    walkers = [(-1, 1, True), (len(path), -1, True)]
-    generate_video(walkers, "double")
+    im.save("res.png", "PNG")
+    print("saved")
 
 if __name__ == "__main__":
-    param = sys.argv[1]
-    file_name = "out"
-    if param.startswith("0x"):
-        seed = param
-    else:
-        seed = get_seed(int(param))
+    list_num_steps = []
+    list_flipped = []
+    list_seed = []
+    for x in sys.argv[1:]:
+        seed = get_seed(int(x))
         if seed == "0x0000000000000000000000000000000000000000000000000000000000000000":
             print(f"NFT #{param} does not exist")
             exit(0)
-        file_name = "{0:06}".format(int(param))
-        print('filename', file_name)
-    print(f"Seed: {seed}")
+        print(seed)
+        num_steps, flipped = calc_num_steps(seed)
+        list_num_steps.append(num_steps)
+        list_flipped.append(flipped)
+        list_seed.append(seed)
 
-    create_media(file_name, seed, "black")
-    create_media(file_name, seed, "white")
+    hor_steps, vert_steps = generate(list_num_steps, list_flipped, list_seed)
+    generate_image(hor_steps, vert_steps, "0x00")
