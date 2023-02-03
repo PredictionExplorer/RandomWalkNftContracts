@@ -244,9 +244,19 @@ def create_media(file_name, seed, background_color):
         out.release()
         print(f"{file_name}_{label}.mp4 saved.")
 
+    # Generate video with 1 starting point
+    walkers = [(-1, 1, True)]
+    generate_video(walkers, "single")
+
     # Generate video with 3 starting points
-    walkers = [(-1, 1, True), (len(path), -1, True)]
-    generate_video(walkers, "double")
+    num_walkers = 3
+    walkers = []
+    for i in range(num_walkers):
+        k = i / num_walkers + (1 / (num_walkers * 2))
+        c = int(k * len(path))
+        walkers.append((c - 1, 1, True))
+        walkers.append((c, -1, True))
+    generate_video(walkers, "triple")
 
 if __name__ == "__main__":
     param = sys.argv[1]
